@@ -217,6 +217,9 @@ GROUP BY Customers.CustomerName;");
             foreach (var o in orders.ToEnumerable())
                 xlsxTest.Table<Order>().Insert(o);
 
+            // test export to excel
+            if (File.Exists(StartupPath + @"\Customers1.xlsx"))
+                File.Delete(StartupPath + @"\Customers1.xlsx");
             var newXlsxTest = new DataFileSource(StartupPath + @"\Customers1.xlsx");
             newXlsxTest.Table<Customer>().CreateDataTable();
             newXlsxTest.Dispose();
