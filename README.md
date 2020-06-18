@@ -40,15 +40,15 @@ To connect reflection to data, we need to define classes. The name of the class 
         public int customerID = -1;
         public int ID = -1;
         public DateTime? OrderDate = DateTime.Now;
-        public bool PaymentRecieved = false, OrderShipped = false;
-        public DateTime? PaymentRecieveDate = null;
+        public bool PaymentReceived = false, OrderShipped = false;
+        public DateTime? PaymentReceiveDate = null;
         public DateTime? ShipDate = null;
 
         // advanced join examples
         [DataJoinToOne("customerID")] public Customer Customer = null;
         [DataJoinToMany(OtherTableField = "orderID")] public List<OrderLine> OrderLines;
         [DataJoinToMany(OtherTableField = "orderID")] public JoinSet<OrderLine> OrderLinesSet;
-        public decimal OrderPrice => Convert.ToDecimal(Source.ExecuteScalarSqlToObject("select sum(price) from orderlines where orderid=" + ID))
+        public decimal OrderPrice => Convert.ToDecimal(Source.ExecuteScalarSqlToObject("select sum(price) from orderLines where orderId=" + ID))
     }
 
 Now that we have some mapping setup, we can query the data:
@@ -68,7 +68,7 @@ Data instances can be edited and updated back to the tables:
 
 More examples are available through the Program.Main method.
 
-### Prerequisits
+### Prerequisites
 
 For some usages, this library requires an installation of Microsoft's data
 engines, as of 6/17/2020 these can be found at the following links:
