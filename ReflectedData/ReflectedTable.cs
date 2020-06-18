@@ -460,7 +460,7 @@ namespace ReflectedData
             connectLine(line);
         }
 
-        public void Insert(T line)
+        public T Insert(T line)
         {
             var values = new object[_fields.Count];
             for (var i = 0; i < _fields.Count; i++)
@@ -469,6 +469,7 @@ namespace ReflectedData
             if (IDField != null)
                 idFieldInfo.SetValue(line, newID);
             connectLine(line);
+            return line; // allow var line = Insert(new T { ... }) format
         }
 
         /// <summary>

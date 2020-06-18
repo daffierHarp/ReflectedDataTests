@@ -71,8 +71,7 @@ namespace ReflectedDataTests
                 jerome.Update();
 
                 // test sql insert. 
-                Order newOrder;
-                orders.Insert(newOrder = new Order {customerID = jerome.ID, OrderShipped = true}); // insert
+                var newOrder = orders.Insert(new Order {customerID = jerome.ID, OrderShipped = true}); // insert
                 var newOrderCopy = orders.Get(newOrder.ID); // query
                 Debug.Assert(newOrder.customerID == newOrderCopy.customerID); // verify data
                 Debug.Assert(newOrder.OrderShipped == newOrderCopy.OrderShipped);
