@@ -12,6 +12,7 @@ manipulate data files.
 In the following example, we run a simple query with no attempt to reflect. We use a wrapper to avoid
 advanced manipulation of DataSets
 
+```csharp
     var src = new DataFileSource(StartupPath + @"\testDB.mdb") {ReuseConnection = true};
     var wrappedSet = src.GetDataSetWrapper("select * from customers");
     var linqEnumFromDataSet = from line in wrappedSet
@@ -20,9 +21,11 @@ advanced manipulation of DataSets
         };
     foreach (var linqLine in linqEnumFromDataSet)
         Debug.WriteLine(linqLine.CustomerName + " from " + linqLine.City);
+```
 
 To connect reflection to data, we need to define classes. The name of the class would match a single line of a table, and the table would be the plural of that name, for example:
 
+```csharp
     [DataRecord(true, IDField = "ID")]
     class Customer : ReflectedTableLine<Customer> {
         public string Address, City, State;
@@ -50,21 +53,28 @@ To connect reflection to data, we need to define classes. The name of the class 
         [DataJoinToMany(OtherTableField = "orderID")] public JoinSet<OrderLine> OrderLinesSet;
         public decimal OrderPrice => Convert.ToDecimal(Source.ExecuteScalarSqlToObject("select sum(price) from orderLines where orderId=" + ID))
     }
+```
 
 Now that we have some mapping setup, we can query the data:
 
+```csharp
     var customersList = ReflectedTable<Customer>.ToListFillJoins(src);
+```
 
 We can access the tables at the source, and perform queries there too:
 
+```csharp
     var customers = src.Table<Customer>();
     var jerome = customers.LikeList("%jer%").FirstOrDefault();
+```
 
 Data instances can be edited and updated back to the tables:
 
+```csharp
     jerome.ZipCode++;
     jerome.Update();
     var newOrder = orders.Insert(new Order {customerID = jerome.ID, OrderShipped = true}); 
+```
 
 More examples are available through the Program.Main method.
 
