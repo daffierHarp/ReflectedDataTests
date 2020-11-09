@@ -23,5 +23,10 @@ namespace ReflectedData
         public string IDField { get; set; }
         public string IndexField { get; set; }
         public string TableName { get; set; }
+
+        /// <summary>
+        ///     If IDField is not null, allows specifying that it is not auto incrementing and thus must be specified on an insert operation
+        /// </summary>
+        public bool AutoIncrement { get; set; } = true;
     }
 }

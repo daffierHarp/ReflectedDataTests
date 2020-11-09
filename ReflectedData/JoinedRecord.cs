@@ -50,15 +50,15 @@ namespace ReflectedData
         {
             ensureReflectedData(src);
             var lTable = src.Table<TL>();
-            var result = new JoinedRecord<TL, TR> {l = lTable.readerToLine(r, startColumnIndex)};
+            var result = new JoinedRecord<TL, TR> {l = lTable.ReaderToLine(r, startColumnIndex)};
             if (rIsJoinedPair != null && rIsJoinedPair.Value) {
                 var cType = typeof(TR);
-                var mthd = cType.GetMethod("readerToLine", BindingFlags.Static);
+                var mthd = cType.GetMethod("ReaderToLine", BindingFlags.Static);
                 if (mthd != null)
                     result.r = (TR) mthd.Invoke(null, new object[] {src, r, startColumnIndex + lFieldsInfo.Length});
             } else {
                 var cTable = src.Table<TR>();
-                result.r = cTable.readerToLine(r, startColumnIndex + lFieldsNames.Length);
+                result.r = cTable.ReaderToLine(r, startColumnIndex + lFieldsNames.Length);
             }
 
             return result;

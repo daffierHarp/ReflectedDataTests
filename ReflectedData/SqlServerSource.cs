@@ -98,6 +98,8 @@ namespace ReflectedData
         {
             if (t == typeof(int) || t == typeof(int?))
                 return SqlDbType.Int; // "int";
+            if (t == typeof(long) || t == typeof(long?))
+                return SqlDbType.BigInt; //"bigint";
             if (t == typeof(DateTime) || t == typeof(DateTime?))
                 return SqlDbType.DateTime; // "datetime";
 

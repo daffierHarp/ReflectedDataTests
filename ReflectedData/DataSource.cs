@@ -19,6 +19,7 @@ namespace ReflectedData
     // TODO: allow timer based auto-disconnecting source
     public abstract class DataSource : IDisposable
     {
+        public static bool SmartUpdates = true;
         TablesCache _tablesCache;
 
         readonly Dictionary<IDataReader, List<IDisposable>> _readerItems =
@@ -50,6 +51,7 @@ namespace ReflectedData
 
         public virtual void Dispose()
         {
+            FlushReaders();
             recycledConnection?.Close();
             recycledConnection = null;
         }
@@ -70,6 +72,10 @@ namespace ReflectedData
             }
         }
 
+        public void Open()
+        {
+            getNewOrRecycledConnection();
+        }
         protected virtual DbConnection getNewOrRecycledConnection()
         {
             lock (this) {
@@ -156,9 +162,11 @@ namespace ReflectedData
             var cn = getNewOrRecycledConnection();
             var cmd = createNewCommand(sql, cn);
             cmd.Prepare();
-            var result = Convert.ToInt32(cmd.ExecuteScalar());
+            var result = cmd.ExecuteScalar();
+            if (result == null || result is DBNull) return 0;
+            var intResult = Convert.ToInt32(result);
             closeConnectionUnlessReuse(cn);
-            return result;
+            return intResult;
         }
 
         public object ExecuteScalarSqlToObject(string sql)
@@ -640,6 +648,8 @@ namespace ReflectedData
                 return "nvarchar(100)";
             if (t == typeof(int))
                 return "int";
+            if (t == typeof(long))
+                return "bigint";
             if (t == typeof(float))
                 return "float";
             if (t == typeof(bool))

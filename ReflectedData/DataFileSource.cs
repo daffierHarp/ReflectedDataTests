@@ -86,12 +86,12 @@ namespace ReflectedData
             // ReSharper disable StringLiteralTypo
             var connString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + _filePath;
             var hdr = ExcelHeaders ? "Yes" : "No";
-            var imex = ExcelDataAsString ? "IMEX=1;" : "";
+            var imex = ExcelDataAsString ? "IMEX=1;ImportMixedTypes=Text;" : "";
             switch (FileType) {
-                case DataFileType.AccessMdb:
-                    connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + _filePath +
-                                 ";User Id=admin;Password=;";
-                    break;
+                //case DataFileType.AccessMdb:
+                //    connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + _filePath +
+                //                 ";User Id=admin;Password=;";
+                //    break;
                 case DataFileType.Excel2007_Xlsb:
                     connString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + _filePath +
                                  ";Extended Properties=\"Excel 12.0;HDR=" + hdr + ";" + imex + "\";";
@@ -109,8 +109,9 @@ namespace ReflectedData
                                  ";Extended Properties=\"Excel 8.0;HDR=" + hdr + ";" + imex + "\";";
                     break;
                 case DataFileType.TextComaDelimited:
-                    connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + _filePath +
-                                 ";Extended Properties=\"text;HDR=Yes;FMT=Delimited\";";
+                    // connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + _filePath +
+                    connString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + _filePath +
+                                  ";Extended Properties=\"text;HDR=Yes;FMT=Delimited\";";
                     break;
             }
             // ReSharper restore StringLiteralTypo
@@ -153,6 +154,8 @@ namespace ReflectedData
         {
             if (t == typeof(int) || t == typeof(int?))
                 return OleDbType.Integer; // "int";
+            if (t == typeof(long) || t == typeof(long?))
+                return OleDbType.BigInt; //64-bit int "bigint"
             if (t == typeof(DateTime) || t == typeof(DateTime?))
                 return OleDbType.DBTimeStamp; // "datetime";
 
@@ -184,6 +187,8 @@ namespace ReflectedData
         {
             if (t == typeof(int))
                 return "int";
+            if (t == typeof(long))
+                return "bigint";
             if (t == typeof(DateTime))
                 return "datetime";
 
@@ -197,7 +202,9 @@ namespace ReflectedData
             if (t == typeof(string))
                 return "varchar(100)";
             if (t == typeof(float))
-                return "float";
+                return "single";
+            if (t == typeof(double))
+                return "double";
             if (t == typeof(bool))
                 return "smallint";
             if (t == typeof(decimal))
@@ -211,8 +218,9 @@ namespace ReflectedData
         {
             switch (FileType) {
                 case DataFileType.Access2007:
-                case DataFileType.AccessMdb:
                     return " PRIMARY KEY AUTOINCREMENT";
+                case DataFileType.AccessMdb:
+                    return " IDENTITY PRIMARY KEY";
             }
 
             return "";

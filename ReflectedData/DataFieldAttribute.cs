@@ -13,6 +13,7 @@ namespace ReflectedData
     {
         public bool Ignore { get; set; }
         public bool IsID { get; set; }
+        public bool IsAutoIncrement { get; set; } = true;
 
         /// <summary>
         ///     Allow accessing a line in the table through table[value], where value would refer

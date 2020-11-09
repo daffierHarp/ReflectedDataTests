@@ -27,8 +27,13 @@ namespace ReflectedData
             if (typeof(T).IsGenericType)
                 _isJoinedRecord = typeof(T).GetGenericTypeDefinition() == typeof(JoinedRecord<,>);
             if (_isJoinedRecord)
+            {
                 _joinedRecordFromReaderMethod =
-                    typeof(T).GetMethod("readerToLine", BindingFlags.Static | BindingFlags.NonPublic);
+                    typeof(T).GetMethod("ReaderToLine", BindingFlags.Static | BindingFlags.Public);
+                if (_joinedRecordFromReaderMethod == null)
+                    _joinedRecordFromReaderMethod =
+                        typeof(T).GetMethod("readerToLine", BindingFlags.Static | BindingFlags.NonPublic);
+            }
         }
 
 
@@ -123,7 +128,7 @@ namespace ReflectedData
 
         #region IEnumerator<T> Members
 
-        public T Current => _table.readerToLine(_r);
+        public T Current => _table.ReaderToLine(_r);
 
         #endregion
 
@@ -141,7 +146,7 @@ namespace ReflectedData
 
         #region IEnumerator Members
 
-        object IEnumerator.Current => _table.readerToLine(_r);
+        object IEnumerator.Current => _table.ReaderToLine(_r);
 
         public bool MoveNext() => _r.Read();
 

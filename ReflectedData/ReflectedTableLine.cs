@@ -9,6 +9,7 @@ using System.Reflection;
 
 #endregion
 
+// ReSharper disable once CheckNamespace
 namespace ReflectedData
 {
     /// <summary>
@@ -35,8 +36,28 @@ namespace ReflectedData
         [DataField(Ignore = true)] public bool IsDeleted = false;
 
         [DataField(Ignore = true)] public DataSource Source = null;
+        /// <summary>
+        /// Dictionary from instance-field name to last data-base value in support of smart updates which do not modify values that aren't changed since last retrieval
+        /// </summary>
+        // ReSharper disable once InconsistentNaming
+        [DataField(Ignore = true)] internal Dictionary<string, object> __smartUpdate_LastValues;
 
         public string IndexFieldCopy => IndexCopy;
+
+        /// <summary>
+        /// check "smart-update" values of record which were cached when the record was retrieved from the database for the value of a field. 
+        /// </summary>
+        /// <param name="fieldName">The class field name (not the database renamed field name)</param>
+        /// <returns>null if missing cache, false if had not changed, true if did. Throws exception if field name does does reflect in current type</returns>
+        public bool? DidFieldChange(string fieldName)
+        {
+            if (__smartUpdate_LastValues == null || !__smartUpdate_LastValues.ContainsKey(fieldName)) return null;
+            var fi = GetType().GetField(fieldName);
+            if (fi == null) throw new Exception("Field name does not exist");
+            var v = fi.GetValue(this);
+            if (Equals(v, __smartUpdate_LastValues[fieldName])) return false;
+            return true;
+        }
 
         /// <summary>
         ///     get instances of parent/child as defined in attributes, will skip fields where the value is not null
@@ -212,11 +233,25 @@ namespace ReflectedData
         /// </summary>
         public void Update()
         {
+            if (IsDeleted)
+                throw new InvalidOperationException("Cannot update a deleted record");
             if (!DataConnected)
                 throw new InvalidOperationException("New records need to be inserted, not updated");
+            var thisLineTableType = AtTable.GetType();
+            var updateMthd = thisLineTableType.GetMethod("Update");
+            updateMthd?.Invoke(AtTable, new object[] {this});
+        }
+
+        public void UpdateOrInsert()
+        {
             if (IsDeleted)
                 throw new InvalidOperationException("Cannot update a deleted record");
             var thisLineTableType = AtTable.GetType();
+            if (!DataConnected) {
+                var inesrtMi = thisLineTableType.GetMethod("Insert");
+                inesrtMi?.Invoke(AtTable, new object[] {this});
+                return;
+            }
             var updateMthd = thisLineTableType.GetMethod("Update");
             updateMthd?.Invoke(AtTable, new object[] {this});
         }
