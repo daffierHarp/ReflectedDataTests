@@ -88,10 +88,10 @@ namespace ReflectedData
             var hdr = ExcelHeaders ? "Yes" : "No";
             var imex = ExcelDataAsString ? "IMEX=1;ImportMixedTypes=Text;" : "";
             switch (FileType) {
-                //case DataFileType.AccessMdb:
-                //    connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + _filePath +
-                //                 ";User Id=admin;Password=;";
-                //    break;
+                case DataFileType.AccessMdb:
+                    connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + _filePath +
+                                 ";User Id=admin;Password=;";
+                    break;
                 case DataFileType.Excel2007_Xlsb:
                     connString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + _filePath +
                                  ";Extended Properties=\"Excel 12.0;HDR=" + hdr + ";" + imex + "\";";
