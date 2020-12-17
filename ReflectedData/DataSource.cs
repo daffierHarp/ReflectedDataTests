@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -253,15 +254,13 @@ namespace ReflectedData
         {
             if (v == null) return "Null";
             if (v is DateTime dateTime)
-                return "'" + dateTime.ToString("yyyy-MM-dd HH:mm:ss") + "'";
+                return $"'{dateTime:yyyy-MM-dd HH:mm:ss}'";
             if (v is string s)
-                return "'" + s.Replace("'", "''") + "'";
-            if (v is bool b) {
-                if (b)
-                    return "1";
-                return "0";
-            }
-
+                return $"'{s.Replace("'", "''")}'";
+            if (v is bool b) return b ? "1" : "0";
+            if (v is float f) return f.ToString(CultureInfo.InvariantCulture);
+            if (v is double d) return d.ToString(CultureInfo.InvariantCulture);
+            if (v is decimal m) return m.ToString(CultureInfo.InvariantCulture);
             return v.ToString();
         }
 
