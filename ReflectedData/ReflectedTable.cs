@@ -82,7 +82,12 @@ namespace ReflectedData
                     if (dataFieldAttr.Ignore)
                         continue;
                     if (dataFieldAttr.Rename != null)
-                        fieldName = TableName + ".[" + dataFieldAttr.Rename + "]";
+                    {
+                        if (dataFieldAttr.Rename.Contains(' '))
+                            fieldName = TableName + ".[" + dataFieldAttr.Rename + "]";
+                        else 
+                            fieldName = dataFieldAttr.Rename;
+                    }
                     if (dataFieldAttr.IsID) {
                         IDField = fieldName;
                         idFieldInfo = finfo;

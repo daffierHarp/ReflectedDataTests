@@ -32,6 +32,7 @@ namespace ReflectedData
         // TODO: create a pool of connections and remove Clone and ReuseConnection flags...
         readonly string _filePath;
         public bool ExcelDataAsString;
+        public string FilePath => _filePath;
 
         /// <summary>
         ///     "HDR=Yes;" indicates that the first row contains column-names, not data. "HDR=No;" indicates the opposite.

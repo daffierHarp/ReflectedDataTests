@@ -220,9 +220,37 @@ GROUP BY Customers.CustomerName;");
             if (File.Exists(StartupPath + @"\Customers1.xlsx"))
                 File.Delete(StartupPath + @"\Customers1.xlsx");
             var newXlsxTest = new DataFileSource(StartupPath + @"\Customers1.xlsx");
-            newXlsxTest.Table<Customer>().CreateDataTable();
+            var exportTable = newXlsxTest.Table<Customer>();
+            exportTable.CreateDataTable();
+            exportTable.Insert(new Customer { Name="export dude", Address="234 3rd st", City="Detroit", ZipCode=48880, State = "MI"});
             newXlsxTest.Dispose();
-            //xlsxTest.Table<Order>().DropDataTable();
+
+            
+            var importFile = new DataFileSource(newXlsxTest.FilePath);
+            importFile.Open();
+            var importReader = importFile.ExecuteReader("select * from [Customers$]");
+            var importTable = importFile.Table<Customer>();
+            int row = 0;
+            while (importReader.Read())
+            {
+                row++;
+                var l = importTable.ReaderToLine(importReader);
+            }
+
+            // test creating new MDB database
+            var testNewMdbPath = StartupPath + @"\test_new.mdb";
+            if (File.Exists(testNewMdbPath)) File.Delete(testNewMdbPath);
+            File.Copy(StartupPath + @"\empty.mdb", testNewMdbPath); // either use an empty file (200k) or use ADOX or office COM objects
+            var newMdbTest = new DataFileSource(testNewMdbPath);
+            newMdbTest.Open();
+            var newMdbTable = newMdbTest.Table<Customer>();
+            newMdbTable.CreateDataTable();
+            newMdbTable.Insert(new Customer { Name="export dude", Address="234 3rd st", City="Detroit", ZipCode=48880, State = "MI"});
+            newMdbTest.Dispose();
+
+            var readNewMdb = new DataFileSource(testNewMdbPath);
+            var testReadList = readNewMdb.Table<Customer>().ToList();
+            readNewMdb.Dispose();
 
             // test access to local sql server express database
             // testSqlServer(orders);
