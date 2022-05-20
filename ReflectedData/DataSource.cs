@@ -671,11 +671,7 @@ namespace ReflectedData
         {
             var cn = getNewOrRecycledConnection();
             var tables = cn.GetSchema("Tables");
-            /*foreach(System.Data.DataRow r in tables.Rows)
-                foreach (System.Data.DataColumn c in tables.Columns)
-                {
-                    System.Diagnostics.Debug.WriteLine( c.ColumnName +"=" + r[c]);
-                }*/
+
             var result = new List<string>();
             foreach (DataRow r in tables.Rows)
                 if (r["TABLE_TYPE"] + "" == "TABLE" || r["TABLE_TYPE"] + "" == "BASE TABLE")
@@ -739,10 +735,10 @@ namespace ReflectedData
                 this.src = src;
             }
 
-            public ReflectedTable<T> Get<T>() where T : class, new()
+            public ReflectedTable<T> Get<T>(string asTableName=null) where T : class, new()
             {
                 lock (this) {
-                    var table = GetLineTableName(typeof(T));
+                    var table = asTableName??GetLineTableName(typeof(T));
                     if (tables.ContainsKey(table))
                         return (ReflectedTable<T>) tables[table];
                     var result = new ReflectedTable<T>(src);
@@ -751,10 +747,10 @@ namespace ReflectedData
                 }
             }
 
-            public object Get(Type lineType)
+            public object Get(Type lineType, string asTableName=null)
             {
                 lock (this) {
-                    var table = GetLineTableName(lineType);
+                    var table = asTableName??GetLineTableName(lineType);
                     if (tables.ContainsKey(table))
                         return tables[table];
                     var rtable = typeof(ReflectedTable<>);

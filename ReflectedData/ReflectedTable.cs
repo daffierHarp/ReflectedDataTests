@@ -56,11 +56,11 @@ namespace ReflectedData
         }
 
 
-        public ReflectedTable(DataSource file)
+        public ReflectedTable(DataSource file, string asTableName = null)
         {
             MyDataSource = file;
             var ttype = typeof(T);
-            TableName = DataSource.GetLineTableName(ttype);
+            TableName = asTableName?? DataSource.GetLineTableName(ttype);
             var classAttributes = ttype.GetCustomAttributes(typeof(DataRecordAttribute), true);
             var allFields = false;
             if (classAttributes.Length > 0) {
