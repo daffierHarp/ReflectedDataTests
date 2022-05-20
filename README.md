@@ -89,3 +89,5 @@ or, Data Engine 2016
 https://www.microsoft.com/en-us/download/details.aspx?id=54920
 
 It appears that to access MDB or XLS files, the base libraries come with latest versions of Windows.
+
+A trick to install both x86 and x64 is to install 2010 for x86, then install the x64 for 2016 with /passive /quiet command line arguments

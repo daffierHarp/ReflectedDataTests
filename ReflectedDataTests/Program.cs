@@ -36,8 +36,14 @@ namespace ReflectedDataTests
             // ReSharper disable once UnusedVariable
             // ReSharper disable once StringLiteralTypo
             var srcNew = new DataFileSource(StartupPath + @"\testDB.accdb");
+            var dataSetNew = srcNew.GetDataSet("select * from customers");
+            dataSetNew.Dispose();
+            if (IntPtr.Size==8)
+                DataFileSource.AllowOldEngine = false;
 
-            var src = new DataFileSource(StartupPath + @"\testDB.mdb") {ReuseConnection = true};
+            var src = new DataFileSource(StartupPath + @"\testDB.mdb") {
+                ReuseConnection = true,
+            };
 
             // Run a query into a data-set, reflection not involved yet
             var dataSet = src.GetDataSet("select * from customers");

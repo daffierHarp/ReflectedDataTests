@@ -38,6 +38,10 @@ namespace ReflectedData
         ///     "HDR=Yes;" indicates that the first row contains column-names, not data. "HDR=No;" indicates the opposite.
         /// </summary>
         public bool ExcelHeaders = true;
+        /// <summary>
+        /// If set to false, MDB will be opened using OLEDB ACE 12
+        /// </summary>
+        public static bool AllowOldEngine = true;
 
         public DataFileType FileType = DataFileType.Access2007;
 
@@ -90,7 +94,8 @@ namespace ReflectedData
             var imex = ExcelDataAsString ? "IMEX=1;ImportMixedTypes=Text;" : "";
             switch (FileType) {
                 case DataFileType.AccessMdb:
-                    connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + _filePath +
+                    if (AllowOldEngine)
+                        connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + _filePath +
                                  ";User Id=admin;Password=;";
                     break;
                 case DataFileType.Excel2007_Xlsb:
@@ -106,8 +111,12 @@ namespace ReflectedData
                                  ";Extended Properties=\"Excel 12.0 Xml;HDR=" + hdr + ";" + imex + "\";";
                     break;
                 case DataFileType.Excel:
-                    connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + _filePath +
-                                 ";Extended Properties=\"Excel 8.0;HDR=" + hdr + ";" + imex + "\";";
+                    if (AllowOldEngine)
+                        connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + _filePath +
+                                    ";Extended Properties=\"Excel 8.0;HDR=" + hdr + ";" + imex + "\";";
+                    else
+                        connString = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + _filePath +
+                                 ";Extended Properties=\"Excel 12.0 Xml;HDR=" + hdr + ";" + imex + "\";";
                     break;
                 case DataFileType.TextComaDelimited:
                     // connString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + _filePath +

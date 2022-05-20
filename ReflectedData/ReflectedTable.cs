@@ -55,8 +55,11 @@ namespace ReflectedData
             return _dbFieldNames[i];
         }
 
+        public ReflectedTable(DataSource file) : this(file, null)
+        {
 
-        public ReflectedTable(DataSource file, string asTableName = null)
+        }
+        public ReflectedTable(DataSource file, string asTableName)
         {
             MyDataSource = file;
             var ttype = typeof(T);
