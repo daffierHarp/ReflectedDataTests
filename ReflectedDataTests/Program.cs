@@ -220,46 +220,94 @@ GROUP BY Customers.CustomerName;");
 
             xlsxTest.Table<Order>().CreateDataTable();
             foreach (var o in orders.ToEnumerable())
-                xlsxTest.Table<Order>().Insert(o);
+                processLock(()=> xlsxTest.Table<Order>().Insert(o));
 
             // test export to excel
+            testExportToExcel();
+
+            // test creating new MDB database
+            testNewMdb();
+
+            // test access to local sql server express database
+            // testSqlServer(orders);
+        }
+
+        static void processLock(Action a, bool inLock = false, string mutexName = "update-db")
+        {
+            if (inLock) {
+                a();
+                return;
+            }
+            var mx = new Mutex(false, mutexName);
+            mx.WaitOne();
+            a();
+            mx.ReleaseMutex();
+        }
+        static void processLock2(Action<bool> a, bool inLock = false, string mutexName = "update-db")
+        {
+            if (inLock) {
+                a(true);
+                return;
+            }
+            var mx = new Mutex(false, mutexName);
+            mx.WaitOne();
+            a(true);
+            mx.ReleaseMutex();
+        }
+        static void processLock3(Action a, ref bool inLock , string mutexName = "update-db")
+        {
+            if (inLock) {
+                a();
+                return;
+            }
+            var mx = new Mutex(false, mutexName);
+            mx.WaitOne();
+            inLock = true;
+            a();
+            inLock = false;
+            mx.ReleaseMutex();
+        }
+
+        static void testExportToExcel()
+        {
             if (File.Exists(StartupPath + @"\Customers1.xlsx"))
                 File.Delete(StartupPath + @"\Customers1.xlsx");
             var newXlsxTest = new DataFileSource(StartupPath + @"\Customers1.xlsx");
             var exportTable = newXlsxTest.Table<Customer>();
             exportTable.CreateDataTable();
-            exportTable.Insert(new Customer { Name="export dude", Address="234 3rd st", City="Detroit", ZipCode=48880, State = "MI"});
+            exportTable.Insert(new Customer
+                { Name = "export dude", Address = "234 3rd st", City = "Detroit", ZipCode = 48880, State = "MI" });
             newXlsxTest.Dispose();
 
-            
+
             var importFile = new DataFileSource(newXlsxTest.FilePath);
             importFile.Open();
             var importReader = importFile.ExecuteReader("select * from [Customers$]");
             var importTable = importFile.Table<Customer>();
             int row = 0;
-            while (importReader.Read())
-            {
+            while (importReader.Read()) {
                 row++;
                 var l = importTable.ReaderToLine(importReader);
             }
+        }
 
-            // test creating new MDB database
+        static void testNewMdb()
+        {
             var testNewMdbPath = StartupPath + @"\test_new.mdb";
             if (File.Exists(testNewMdbPath)) File.Delete(testNewMdbPath);
-            File.Copy(StartupPath + @"\empty.mdb", testNewMdbPath); // either use an empty file (200k) or use ADOX or office COM objects
+            File.Copy(StartupPath + @"\empty.mdb",
+                testNewMdbPath); // either use an empty file (200k) or use ADOX or office COM objects
             var newMdbTest = new DataFileSource(testNewMdbPath);
             newMdbTest.Open();
             var newMdbTable = newMdbTest.Table<Customer>();
             newMdbTable.CreateDataTable();
-            newMdbTable.Insert(new Customer { Name="export dude", Address="234 3rd st", City="Detroit", ZipCode=48880, State = "MI"});
+            newMdbTable.Insert(new Customer
+                { Name = "export dude", Address = "234 3rd st", City = "Detroit", ZipCode = 48880, State = "MI" });
             newMdbTest.Dispose();
 
             var readNewMdb = new DataFileSource(testNewMdbPath);
             var testReadList = readNewMdb.Table<Customer>().ToList();
             readNewMdb.Dispose();
-
-            // test access to local sql server express database
-            // testSqlServer(orders);
         }
         // ReSharper disable UnusedMember.Global
 

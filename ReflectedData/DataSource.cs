@@ -9,6 +9,8 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
+
 // ReSharper disable UnusedMemberInSuper.Global
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
@@ -285,9 +287,22 @@ namespace ReflectedData
             }
 
             sqlBuilder.Append(" WHERE " + idField + "=" + ValueToSql(rowId) + ";");
-            ExecuteSql(sqlBuilder.ToString());
+            var sql = sqlBuilder.ToString();
+            dbTryTryAgain(()=>ExecuteSql(sql), ex=> (uint) ex.HResult != 0x80004005, 6, 267);
         }
-
+        static void dbTryTryAgain(Action a, Func<Exception, bool> shouldThrow, int count = 3, int delay = 117)
+        {
+            for (int i = 0; i < count; i++) {
+                try {
+                    a();
+                    return;
+                } catch (Exception ex) {
+                    if (shouldThrow(ex) || i==count-1)
+                        throw;
+                    Thread.Sleep(delay);
+                }
+            }
+        }
         /// <summary>
         ///     construct and execute an "insert" sql query
         /// </summary>
@@ -303,7 +318,7 @@ namespace ReflectedData
             var cn = getNewOrRecycledConnection();
             var cmd = createNewCommand(sql, cn);
             cmd.Prepare();
-            cmd.ExecuteNonQuery();
+            dbTryTryAgain(()=>cmd.ExecuteNonQuery(), ex=> (uint) ex.HResult != 0x80004005, 6, 267);;
             if (!getIdentity) {
                 cmd.Dispose();
                 closeConnectionUnlessReuse(cn);
