@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -295,8 +296,10 @@ GROUP BY Customers.CustomerName;");
         {
             var testNewMdbPath = StartupPath + @"\test_new.mdb";
             if (File.Exists(testNewMdbPath)) File.Delete(testNewMdbPath);
-            File.Copy(StartupPath + @"\empty.mdb",
+            createEmptyMdbFile(testNewMdbPath);
+            /*File.Copy(StartupPath + @"\empty.mdb",
                 testNewMdbPath); // either use an empty file (200k) or use ADOX or office COM objects
+            */
             var newMdbTest = new DataFileSource(testNewMdbPath);
             newMdbTest.Open();
             var newMdbTable = newMdbTest.Table<Customer>();
@@ -309,6 +312,29 @@ GROUP BY Customers.CustomerName;");
             var testReadList = readNewMdb.Table<Customer>().ToList();
             readNewMdb.Dispose();
         }
+
+        static Stream streamOfResource(string resourcePath)
+        {
+            var t = typeof(Program);
+            return t.Assembly.GetManifestResourceStream(resourcePath);
+        }
+
+        static Stream emptyMdbZipStream() => streamOfResource("ReflectedDataTests.empty_mdb.zip");
+
+        static void createEmptyMdbFile(string filePath)
+        {
+            filePath = Path.GetFullPath(filePath);
+            var tmp = Path.GetTempFileName();
+            using(var newFileStream = File.Create(tmp))
+                emptyMdbZipStream().CopyTo(newFileStream);
+            using (var archive = ZipFile.OpenRead(tmp)) {
+                var e = archive.GetEntry("empty.mdb");
+                e.ExtractToFile(filePath);
+            }
+
+            File.Delete(tmp);
+        }
+
         // ReSharper disable UnusedMember.Global
 
 #pragma warning disable 649
