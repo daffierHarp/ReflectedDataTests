@@ -318,19 +318,23 @@ namespace ReflectedData
             var cn = getNewOrRecycledConnection();
             var cmd = createNewCommand(sql, cn);
             cmd.Prepare();
-            dbTryTryAgain(()=>cmd.ExecuteNonQuery(), ex=> (uint) ex.HResult != 0x80004005, 6, 267);;
-            if (!getIdentity) {
-                cmd.Dispose();
-                closeConnectionUnlessReuse(cn);
-                return -1;
-            }
+            lock (this)
+            {
+                dbTryTryAgain(() => cmd.ExecuteNonQuery(), ex => (uint)ex.HResult != 0x80004005, 6, 267); ;
+                if (!getIdentity)
+                {
+                    cmd.Dispose();
+                    closeConnectionUnlessReuse(cn);
+                    return -1;
+                }
 
-            var cmd2 = createNewCommand("SELECT @@IDENTITY;", cn);
-            var result = Convert.ToInt32(cmd2.ExecuteScalar());
-            cmd.Dispose();
-            cmd2.Dispose();
-            closeConnectionUnlessReuse(cn);
-            return result;
+                var cmd2 = createNewCommand("SELECT @@IDENTITY;", cn);
+                var result = Convert.ToInt32(cmd2.ExecuteScalar());
+                cmd.Dispose();
+                cmd2.Dispose();
+                closeConnectionUnlessReuse(cn);
+                return result;
+            }
         }
 
         // TODO: implement this better for sql server
