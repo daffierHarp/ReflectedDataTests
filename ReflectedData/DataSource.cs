@@ -153,33 +153,48 @@ namespace ReflectedData
         public int ExecuteSql(string sql)
         {
             var cn = getNewOrRecycledConnection();
-            var cmd = createNewCommand(sql, cn);
-            cmd.Prepare();
-            var result = cmd.ExecuteNonQuery();
-            closeConnectionUnlessReuse(cn);
-            return result;
+            using (var cmd = createNewCommand(sql, cn)) {
+                cmd.Prepare();
+                var result = cmd.ExecuteNonQuery();
+                closeConnectionUnlessReuse(cn);
+                return result;
+            }
         }
 
         public int ExecuteScalarSql(string sql)
         {
+            var result = ExecuteScalarSql2(sql);
+            if (result.HasValue) return result.Value;
+            return 0;
+        }
+        public int ExecuteScalarSql(string sql, int resultOnMissing)
+        {
+            var result = ExecuteScalarSql2(sql);
+            if (result.HasValue) return result.Value;
+            return resultOnMissing;
+        }
+        public int? ExecuteScalarSql2(string sql)
+        {
             var cn = getNewOrRecycledConnection();
-            var cmd = createNewCommand(sql, cn);
-            cmd.Prepare();
-            var result = cmd.ExecuteScalar();
-            if (result == null || result is DBNull) return 0;
-            var intResult = Convert.ToInt32(result);
-            closeConnectionUnlessReuse(cn);
-            return intResult;
+            using (var cmd = createNewCommand(sql, cn)) {
+                cmd.Prepare();
+                var result = cmd.ExecuteScalar();
+                if (result == null || result is DBNull) return null;
+                var intResult = Convert.ToInt32(result);
+                closeConnectionUnlessReuse(cn);
+                return intResult;
+            }
         }
 
         public object ExecuteScalarSqlToObject(string sql)
         {
             var cn = getNewOrRecycledConnection();
-            var cmd = createNewCommand(sql, cn);
-            cmd.Prepare();
-            var result = cmd.ExecuteScalar();
-            closeConnectionUnlessReuse(cn);
-            return result;
+            using (var cmd = createNewCommand(sql, cn)) {
+                cmd.Prepare();
+                var result = cmd.ExecuteScalar();
+                closeConnectionUnlessReuse(cn);
+                return result;
+            }
         }
 
         /// <summary>
@@ -190,11 +205,12 @@ namespace ReflectedData
         public string ExecuteScalarSqlAsString(string sql)
         {
             var cn = getNewOrRecycledConnection();
-            var cmd = createNewCommand(sql, cn);
-            cmd.Prepare();
-            var result = Convert.ToString(cmd.ExecuteScalar());
-            closeConnectionUnlessReuse(cn);
-            return result;
+            using (var cmd = createNewCommand(sql, cn)) {
+                cmd.Prepare();
+                var result = Convert.ToString(cmd.ExecuteScalar());
+                closeConnectionUnlessReuse(cn);
+                return result;
+            }
         }
 
         /// <summary>
@@ -342,14 +358,15 @@ namespace ReflectedData
         {
             var sql = GetInsertSqlWithParams(table, fields);
             var cn = getNewOrRecycledConnection();
-            var cmd = createNewCommand(sql, cn, fieldTypes);
-            cmd.Prepare();
-            for (var i = 0; i < values.GetLength(0); i++) {
-                for (var f = 0; f < fields.Length; f++) cmd.Parameters["@F" + f].Value = values[i, f];
-                cmd.ExecuteNonQuery();
+            using (var cmd = createNewCommand(sql, cn, fieldTypes)) {
+                cmd.Prepare();
+                for (var i = 0; i < values.GetLength(0); i++) {
+                    for (var f = 0; f < fields.Length; f++) cmd.Parameters["@F" + f].Value = values[i, f];
+                    cmd.ExecuteNonQuery();
+                }
             }
 
-            cmd.Dispose();
+			
             closeConnectionUnlessReuse(cn);
         }
 
@@ -688,15 +705,20 @@ namespace ReflectedData
 
         public string[] GetDataTableNames()
         {
-            var cn = getNewOrRecycledConnection();
+            var cn = NewConnection(); //getNewOrRecycledConnection();
             var tables = cn.GetSchema("Tables");
-
+            /*foreach(System.Data.DataRow r in tables.Rows)
+                foreach (System.Data.DataColumn c in tables.Columns)
+                {
+                    System.Diagnostics.Debug.WriteLine( c.ColumnName +"=" + r[c]);
+                }*/
             var result = new List<string>();
             foreach (DataRow r in tables.Rows)
                 if (r["TABLE_TYPE"] + "" == "TABLE" || r["TABLE_TYPE"] + "" == "BASE TABLE")
                     result.Add(r["TABLE_NAME"] + "");
             tables.Dispose();
-            closeConnectionUnlessReuse(cn);
+            cn.Close();
+            //closeConnectionUnlessReuse(cn);
             return result.ToArray();
         }
 
