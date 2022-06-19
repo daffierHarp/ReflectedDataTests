@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using ReflectedData;
+using static System.Console;
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedVariable
 
@@ -33,6 +34,14 @@ namespace ReflectedDataTests
         // ReSharper disable once UnusedParameter.Local
         static void Main(string[] args)
         {
+            WriteLine("Reflected Data library test app\r\n" + new string('-', 40));
+
+
+            testCsv();
+
+            WriteLine("Performing tests, output in debugger 'output' window\r\n" + new string('-', 40));
+
+
             // simplify connection creation by referring file path and immediately start using data
             // ReSharper disable once UnusedVariable
             // ReSharper disable once StringLiteralTypo
@@ -397,6 +406,23 @@ GROUP BY Customers.CustomerName;");
                 Debug.WriteLine(
                     Thread.CurrentThread.Name + ">>" +
                     c.Name + " bought " + ol.Detail + ":" + ol.Price);
+        }
+
+        static void testCsv()
+        {
+            WriteLine("test csv\r\n"+new string('-', 20));
+            var path = StartupPath + @"\itot_holdings.csv";
+            if (!File.Exists(path))
+            {
+                WriteLine("File " + path + " not found");
+                return;
+            }
+            string[][] values; 
+            using (var f = File.OpenText(path))
+                values = CsvHelper.ParseCsv(f).ToArray();
+
+            foreach (var line in values.Take(20))
+                WriteLine(string.Join(",", line.Select(v => v.AsCsvField1())));
         }
     }
 }
