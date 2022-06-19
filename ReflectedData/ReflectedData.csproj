@@ -97,6 +97,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConnectionSource.cs" />
+    <Compile Include="CsvHelper.cs" />
     <Compile Include="DataFieldAttribute.cs" />
     <Compile Include="DataFileSource.cs" />
     <Compile Include="DataRecordAttribute.cs" />
