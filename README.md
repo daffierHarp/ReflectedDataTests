@@ -2,8 +2,6 @@
 
 ## ReflectedData CSharp Library
 
-by *Sivan Segev*  
-
 This library was initially created around 2008 to wrap around Microsoft's data libraries to quickly access and
 manipulate data files.
 
